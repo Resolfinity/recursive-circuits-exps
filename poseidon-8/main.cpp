@@ -24,15 +24,14 @@ field_type uint_to_field(uint64_t_le lower)
 
 field_type zero_poseidon = hash<hashes::poseidon>(uint_to_field(0), uint_to_field(0));
 
-template <std::size_t size>
+template <std::size_t size, size_t distance>
 field_type evaluate_root(
     typename std::array<field_type, size>::iterator begin,
-    typename std::array<field_type, size>::iterator end,
-    std::size_t distance)
+    typename std::array<field_type, size>::iterator end)
 {
   std::size_t stride = 1;
 
-  while (stride < distance)
+  while (stride != distance)
   {
     for (auto i = begin; i != end; i += 2 * stride)
     {
@@ -55,11 +54,10 @@ struct EvaluateRootResult
   field_type sum_balance;
 };
 
-template <size_t size>
+template <size_t size, size_t distance>
 void compute_validator_leaves(
     typename std::array<field_type, size>::iterator validators_begin,
     uint64_t_be epoch,
-    std::size_t distance,
     typename std::array<field_type, size>::iterator layer0_begin,
     typename std::array<field_type, size>::iterator balances_subtotals_begin,
     typename std::array<uint64_t_be, size>::iterator validators_indices_begin,
@@ -101,10 +99,10 @@ void compute_validator_leaves(
 }
 
 template <size_t changed_fields_size,
-          size_t leaves_size>
+          size_t leaves_size,
+          size_t distance>
 void compute_beacon_validators_leaves(
     typename std::array<field_type, changed_fields_size>::iterator changed_validators_fields_begin,
-    std::size_t distance,
     std::size_t offset,
     typename std::array<block_type, leaves_size>::iterator intermediate_merkle_roots_begin,
     typename std::array<block_type, leaves_size * 20>::iterator changed_validators_beacon_proofs_begin)
@@ -260,115 +258,113 @@ constexpr size_t CHANGED_VALIDATORS_ARRAY_SIZE = MAX_VALIDATORS_CHANGED * VALIDA
 
 #pragma zk_multi_prover 0
   {
-    compute_validator_leaves<2097152>(
+    compute_validator_leaves<2097152, 8192>(
         validators_begin,
         epoch,
-        8192,
         layer0_begin,
         balances_subtotals_begin,
         validators_indices_begin,
         0);
 
-    layer1[0] = evaluate_root<8192>(layer0_begin, layer0_begin + 8192, 8192);
+    layer1[0] = evaluate_root<8192, 8192>(layer0_begin, layer0_begin + 8192);
   }
 
-#pragma zk_multi_prover 1
-  {
-    compute_validator_leaves<2097152>(
-        validators_begin,
-        epoch,
-        8192,
-        layer0_begin,
-        balances_subtotals_begin,
-        validators_indices_begin,
-        1);
+  // #pragma zk_multi_prover 1
+  //   {
+  //     compute_validator_leaves<2097152, 8192>(
+  //         validators_begin,
+  //         epoch,
+  //         layer0_begin,
+  //         balances_subtotals_begin,
+  //         validators_indices_begin,
+  //         1);
 
-    layer1[1] = evaluate_root<8192>(layer0_begin + 8192, layer0_begin + 16384, 8192);
-  }
+  //     layer1[1] = evaluate_root<8192, 8192>(layer0_begin + 8192, layer0_begin + 16384);
+  //   }
 
-#pragma zk_multi_prover 2
-  {
-    compute_validator_leaves<2097152>(
-        validators_begin,
-        epoch,
-        8192,
-        layer0_begin,
-        balances_subtotals_begin,
-        validators_indices_begin,
-        2);
+  // #pragma zk_multi_prover 2
+  //   {
+  //     compute_validator_leaves<2097152>(
+  //         validators_begin,
+  //         epoch,
+  //         8192,
+  //         layer0_begin,
+  //         balances_subtotals_begin,
+  //         validators_indices_begin,
+  //         2);
 
-    layer1[2] = evaluate_root<8192>(layer0_begin + 8192 * 2, layer0_begin + 8192 * 3, 8192);
-  }
+  //     layer1[2] = evaluate_root<8192>(layer0_begin + 8192 * 2, layer0_begin + 8192 * 3, 8192);
+  //   }
 
-#pragma zk_multi_prover 3
-  {
-    compute_validator_leaves<2097152>(
-        validators_begin,
-        epoch,
-        8192,
-        layer0_begin,
-        balances_subtotals_begin,
-        validators_indices_begin,
-        3);
+  // #pragma zk_multi_prover 3
+  //   {
+  //     compute_validator_leaves<2097152>(
+  //         validators_begin,
+  //         epoch,
+  //         8192,
+  //         layer0_begin,
+  //         balances_subtotals_begin,
+  //         validators_indices_begin,
+  //         3);
 
-    layer1[3] = evaluate_root<8192>(layer0_begin + 8192 * 3, layer0_begin + 8192 * 4, 8192);
-  }
+  //     layer1[3] = evaluate_root<8192>(layer0_begin + 8192 * 3, layer0_begin + 8192 * 4, 8192);
+  //   }
 
-#pragma zk_multi_prover 4
-  {
-    compute_validator_leaves<2097152>(
-        validators_begin,
-        epoch,
-        8192,
-        layer0_begin,
-        balances_subtotals_begin,
-        validators_indices_begin,
-        0);
+  // #pragma zk_multi_prover 4
+  //   {
+  //     compute_validator_leaves<2097152>(
+  //         validators_begin,
+  //         epoch,
+  //         8192,
+  //         layer0_begin,
+  //         balances_subtotals_begin,
+  //         validators_indices_begin,
+  //         0);
 
-    layer1[4] = evaluate_root<8192>(layer0_begin + 8192 * 4, layer0_begin + 8192 * 5, 8192);
-  }
+  //     layer1[4] = evaluate_root<8192>(layer0_begin + 8192 * 4, layer0_begin + 8192 * 5, 8192);
+  //   }
 
-#pragma zk_multi_prover 5
-  {
-    compute_validator_leaves<2097152>(
-        validators_begin,
-        epoch,
-        8192,
-        layer0_begin,
-        balances_subtotals_begin,
-        validators_indices_begin,
-        1);
+  // #pragma zk_multi_prover 5
+  //   {
+  //     compute_validator_leaves<2097152>(
+  //         validators_begin,
+  //         epoch,
+  //         8192,
+  //         layer0_begin,
+  //         balances_subtotals_begin,
+  //         validators_indices_begin,
+  //         1);
 
-    layer1[5] = evaluate_root<8192>(layer0_begin + 8192 * 5, layer0_begin + 8192 * 6, 8192);
-  }
+  //     layer1[5] = evaluate_root<8192>(layer0_begin + 8192 * 5, layer0_begin + 8192 * 6, 8192);
+  //   }
 
-#pragma zk_multi_prover 6
-  {
-    compute_validator_leaves<2097152>(
-        validators_begin,
-        epoch,
-        8192,
-        layer0_begin,
-        balances_subtotals_begin,
-        validators_indices_begin,
-        2);
+  // #pragma zk_multi_prover 6
+  //   {
+  //     compute_validator_leaves<2097152>(
+  //         validators_begin,
+  //         epoch,
+  //         8192,
+  //         layer0_begin,
+  //         balances_subtotals_begin,
+  //         validators_indices_begin,
+  //         2);
 
-    layer1[6] = evaluate_root<8192>(layer0_begin + 8192 * 6, layer0_begin + 8192 * 7, 8192);
-  }
+  //     layer1[6] = evaluate_root<8192>(layer0_begin + 8192 * 6, layer0_begin + 8192 * 7, 8192);
+  //   }
 
-#pragma zk_multi_prover 7
-  {
-    compute_validator_leaves<2097152>(
-        validators_begin,
-        epoch,
-        8192,
-        layer0_begin,
-        balances_subtotals_begin,
-        validators_indices_begin,
-        3);
+  // #pragma zk_multi_prover 7
+  //   {
+  //     compute_validator_leaves<2097152>(
+  //         validators_begin,
+  //         epoch,
+  //         8192,
+  //         layer0_begin,
+  //         balances_subtotals_begin,
+  //         validators_indices_begin,
+  //         3);
 
-    layer1[7] = evaluate_root<8192>(layer0_begin + 8192 * 7, layer0_begin + 8192 * 8, 8192);
-  }
+  //     layer1[7] = evaluate_root<8192>(layer0_begin + 8192 * 7, layer0_begin + 8192 * 8, 8192);
+  //   }
 
   // //   // here we have layer1 with validators subtrees roots
   // //   // each subtree is made of 8192 validators, hence for 1_500_000 validators we have 184 subtrees
