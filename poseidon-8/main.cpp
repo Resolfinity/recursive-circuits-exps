@@ -24,22 +24,22 @@ field_type uint_to_field(uint64_t_le lower)
 
 field_type zero_poseidon = hash<hashes::poseidon>(uint_to_field(0), uint_to_field(0));
 
-template <std::size_t size, size_t distance>
-field_type evaluate_root(
-    typename std::array<field_type, size>::iterator begin,
-    typename std::array<field_type, size>::iterator end)
+template <size_t input_size, size_t leaves_size, size_t start>
+field_type evaluate_root(std::array<field_type, 2097152> &input)
 {
-  std::size_t stride = 1;
+  std::array<field_type, leaves_size> leaves;
 
-  while (stride != distance)
+  for (std::size_t i = 0; i < input_size / 2; i++)
   {
-    for (auto i = begin; i != end; i += 2 * stride)
-    {
-      *i = hash<poseidon_hash>(*i, *(i + stride));
-    }
-    stride *= 2;
+    leaves[i] = hash<poseidon_hash>(input[start + i + i], input[start + i + i + 1]);
   }
-  return *begin;
+
+  for (std::size_t i = 0; i < input_size / 2 - 1; i++)
+  {
+    leaves[input_size / 2 + i] = hash<poseidon_hash>(leaves[i + i], leaves[i + i + 1]);
+  }
+
+  return leaves[leaves_size - 1];
 }
 
 bool is_same(block_type block0,
@@ -266,7 +266,20 @@ constexpr size_t CHANGED_VALIDATORS_ARRAY_SIZE = MAX_VALIDATORS_CHANGED * VALIDA
         validators_indices_begin,
         0);
 
-    layer1[0] = evaluate_root<8192, 8192>(layer0_begin, layer0_begin + 8192);
+    layer1[0] = evaluate_root<8192, 8191, 0>(layer0);
+  }
+
+#pragma zk_multi_prover 1
+  {
+    compute_validator_leaves<2097152, 8192>(
+        validators_begin,
+        epoch,
+        layer0_begin,
+        balances_subtotals_begin,
+        validators_indices_begin,
+        0);
+
+    layer1[1] = evaluate_root<8192, 8191, 8192>(layer0);
   }
 
   // #pragma zk_multi_prover 1
