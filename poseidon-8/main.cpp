@@ -279,10 +279,10 @@ constexpr size_t CHANGED_VALIDATORS_ARRAY_SIZE = MAX_VALIDATORS_CHANGED * VALIDA
         validators_indices_begin,
         0);
 
-    layer1[1] = evaluate_root<8192, 8191, 8192>(layer0);
+    layer1[1] = evaluate_root<8192, 8191, 8192 * 1>(layer0);
   }
 
-  // #pragma zk_multi_prover 1
+  // #pragma zk_multi_prover 2
   //   {
   //     compute_validator_leaves<2097152, 8192>(
   //         validators_begin,
@@ -290,137 +290,10 @@ constexpr size_t CHANGED_VALIDATORS_ARRAY_SIZE = MAX_VALIDATORS_CHANGED * VALIDA
   //         layer0_begin,
   //         balances_subtotals_begin,
   //         validators_indices_begin,
-  //         1);
-
-  //     layer1[1] = evaluate_root<8192, 8192>(layer0_begin + 8192, layer0_begin + 16384);
-  //   }
-
-  // #pragma zk_multi_prover 2
-  //   {
-  //     compute_validator_leaves<2097152>(
-  //         validators_begin,
-  //         epoch,
-  //         8192,
-  //         layer0_begin,
-  //         balances_subtotals_begin,
-  //         validators_indices_begin,
-  //         2);
-
-  //     layer1[2] = evaluate_root<8192>(layer0_begin + 8192 * 2, layer0_begin + 8192 * 3, 8192);
-  //   }
-
-  // #pragma zk_multi_prover 3
-  //   {
-  //     compute_validator_leaves<2097152>(
-  //         validators_begin,
-  //         epoch,
-  //         8192,
-  //         layer0_begin,
-  //         balances_subtotals_begin,
-  //         validators_indices_begin,
-  //         3);
-
-  //     layer1[3] = evaluate_root<8192>(layer0_begin + 8192 * 3, layer0_begin + 8192 * 4, 8192);
-  //   }
-
-  // #pragma zk_multi_prover 4
-  //   {
-  //     compute_validator_leaves<2097152>(
-  //         validators_begin,
-  //         epoch,
-  //         8192,
-  //         layer0_begin,
-  //         balances_subtotals_begin,
-  //         validators_indices_begin,
   //         0);
 
-  //     layer1[4] = evaluate_root<8192>(layer0_begin + 8192 * 4, layer0_begin + 8192 * 5, 8192);
+  //     layer1[1] = evaluate_root<8192, 8191, 8192 * 2>(layer0);
   //   }
-
-  // #pragma zk_multi_prover 5
-  //   {
-  //     compute_validator_leaves<2097152>(
-  //         validators_begin,
-  //         epoch,
-  //         8192,
-  //         layer0_begin,
-  //         balances_subtotals_begin,
-  //         validators_indices_begin,
-  //         1);
-
-  //     layer1[5] = evaluate_root<8192>(layer0_begin + 8192 * 5, layer0_begin + 8192 * 6, 8192);
-  //   }
-
-  // #pragma zk_multi_prover 6
-  //   {
-  //     compute_validator_leaves<2097152>(
-  //         validators_begin,
-  //         epoch,
-  //         8192,
-  //         layer0_begin,
-  //         balances_subtotals_begin,
-  //         validators_indices_begin,
-  //         2);
-
-  //     layer1[6] = evaluate_root<8192>(layer0_begin + 8192 * 6, layer0_begin + 8192 * 7, 8192);
-  //   }
-
-  // #pragma zk_multi_prover 7
-  //   {
-  //     compute_validator_leaves<2097152>(
-  //         validators_begin,
-  //         epoch,
-  //         8192,
-  //         layer0_begin,
-  //         balances_subtotals_begin,
-  //         validators_indices_begin,
-  //         3);
-
-  //     layer1[7] = evaluate_root<8192>(layer0_begin + 8192 * 7, layer0_begin + 8192 * 8, 8192);
-  //   }
-
-  // //   // here we have layer1 with validators subtrees roots
-  // //   // each subtree is made of 8192 validators, hence for 1_500_000 validators we have 184 subtrees
-  // //   // we can compute the root of the whole tree in one worker
-  // #pragma zk_multi_prover 2
-  //   {
-  //     result = evaluate_root<256>(layer0_begin, layer0_begin + 256, 256);
-  //   }
-
-  // here we compare computed root with the old_poseidon_root
-  // if they are the same, we can trust all the validators were in prev epoch
-  // now we have to validate updated validators are the only ones who changed validators root
-  // first we have to  merkelize validators_leaves with sha256
-
-  // #pragma zk_multi_prover 0
-  //   {
-  //     compute_beacon_validators_leaves<CHANGED_VALIDATORS_ARRAY_SIZE, MAX_VALIDATORS_CHANGED>(
-  //         changed_validators_fields_begin,
-  //         16,
-  //         0,
-  //         intermediate_merkle_roots_begin,
-  //         changed_validators_beacon_proofs_begin);
-  //   }
-
-  // #pragma zk_multi_prover 4
-  //   {
-  //     compute_beacon_validators_leaves<CHANGED_VALIDATORS_ARRAY_SIZE, MAX_VALIDATORS_CHANGED>(
-  //         changed_validators_fields_begin,
-  //         16,
-  //         16,
-  //         intermediate_merkle_roots_begin,
-  //         changed_validators_beacon_proofs_begin);
-  //   }
-
-  // at that point we have verified all the updated validators
-  // next step is to update poseidon tree with new validators
-  // we have pre-computed merkle proofs for each updated validator
-  // we have to do 250*20 = 5000 poseidon hashes, it is possible in one worker
-
-  // todo: write worker logic to update poseidon tree with new validators and compute new root
-
-  // at that point we have verified all the updated validators and new poseidon root
-  // we can use input pubkeys to verify aggregated signatures
 
   return result;
 }
